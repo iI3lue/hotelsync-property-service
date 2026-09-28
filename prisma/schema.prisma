@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Hotel {
+  hotel_id  String @id @default(uuid()) @db.Uuid
+  name      String @db.VarChar(255)
+  city      String @db.VarChar(100)
+  country   String @db.VarChar(100)
+  timezone  String @db.VarChar(50)
+
+  roomTypes            RoomType[]
+  cancellationPolicies CancellationPolicy[]
+
+  @@map("hotels")
+}
+
+model RoomType {
+  room_type_id String    @id @default(uuid()) @db.Uuid
+  hotel_id     String    @db.Uuid
+  name         String    @db.VarChar(255)
+  capacity     Int
+  base_rate    Decimal   @db.Decimal(10, 2)
+  amenities    String[]  @db.VarChar(100)
+
+  hotel Hotel @relation(fields: [hotel_id], references: [hotel_id])
+
+  @@map("room_types")
+}
+
+model CancellationPolicy {
+  policy_id   String @id @default(uuid()) @db.Uuid
+  hotel_id    String @db.Uuid
+  name        String @db.VarChar(255)
+  description String @db.Text
+
+  hotel Hotel @relation(fields: [hotel_id], references: [hotel_id])
+
+  @@map("cancellation_policies")
+}
