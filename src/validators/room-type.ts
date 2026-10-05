@@ -6,6 +6,7 @@ export const createRoomTypeSchema = z.object({
   capacity: z.number().int().min(1),
   base_rate: z.number().min(0),
   amenities: z.array(z.string().max(100)).optional().default([]),
+  image_url: z.string().url().max(500).optional(),
 });
 
 export const updateRoomTypeSchema = z.object({
@@ -13,6 +14,7 @@ export const updateRoomTypeSchema = z.object({
   capacity: z.number().int().min(1).optional(),
   base_rate: z.number().min(0).optional(),
   amenities: z.array(z.string().max(100)).optional(),
+  image_url: z.string().url().max(500).optional(),
 });
 
 export const roomTypeIdParamSchema = z.object({

@@ -37,6 +37,7 @@ export class HotelService {
     return prisma.hotel.create({
       data: {
         name: data.name,
+        address: data.address,
         city: data.city,
         country: data.country,
         timezone: data.timezone,

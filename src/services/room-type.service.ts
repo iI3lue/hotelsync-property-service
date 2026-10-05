@@ -33,6 +33,7 @@ export class RoomTypeService {
         capacity: data.capacity,
         base_rate: data.base_rate,
         amenities: data.amenities,
+        image_url: data.image_url,
       },
     });
   }

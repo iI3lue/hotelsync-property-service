@@ -11,6 +11,7 @@ datasource db {
 model Hotel {
   hotel_id String @id @default(uuid()) @db.Uuid
   name     String @db.VarChar(255)
+  address  String? @db.VarChar(255)
   city     String @db.VarChar(100)
   country  String @db.VarChar(100)
   timezone String @db.VarChar(50)
@@ -29,6 +30,7 @@ model RoomType {
   capacity     Int
   base_rate    Decimal  @db.Decimal(10, 2)
   amenities    String[] @db.VarChar(100)
+  image_url    String?  @db.VarChar(500)
 
   hotel         Hotel          @relation(fields: [hotel_id], references: [hotel_id])
   physicalRooms PhysicalRoom[]
