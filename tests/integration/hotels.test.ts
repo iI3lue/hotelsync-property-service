@@ -24,7 +24,15 @@ jest.mock("../../src/lib/prisma.js", () => ({
 }));
 
 import prisma from "../../src/lib/prisma.js";
+import { signAccessToken } from "../../../user-service/src/lib/tokens.js";
 const mockPrisma = prisma as any;
+
+const ADMIN_TOKEN = signAccessToken({
+  sub: "admin",
+  email: "admin@hotelsync.local",
+  role: "SUPER_ADMIN",
+  hotel_id: null,
+});
 
 const app = express();
 app.use(express.json());
@@ -59,20 +67,32 @@ describe("Property Service API", () => {
   });
 
   describe("POST /v1/hotels", () => {
-    it("should create a hotel with valid data", async () => {
+    it("should create a hotel with valid data and admin session", async () => {
       const hotel = { hotel_id: VALID_UUID, name: "Test Hotel", city: "BA", country: "AR", timezone: "America/Argentina/Buenos_Aires" };
       mockPrisma.hotel.create.mockResolvedValue(hotel);
 
       const res = await request(app)
         .post("/v1/hotels")
+        .set("Authorization", `Bearer ${ADMIN_TOKEN}`)
         .send({ name: "Test Hotel", city: "BA", country: "AR", timezone: "America/Argentina/Buenos_Aires" });
 
       expect(res.status).toBe(201);
       expect(res.body.name).toBe("Test Hotel");
     });
 
+    it("should return 401 without a session", async () => {
+      const res = await request(app)
+        .post("/v1/hotels")
+        .send({ name: "Test Hotel", city: "BA", country: "AR", timezone: "America/Argentina/Buenos_Aires" });
+
+      expect(res.status).toBe(401);
+    });
+
     it("should return 400 with missing fields", async () => {
-      const res = await request(app).post("/v1/hotels").send({ name: "Test" });
+      const res = await request(app)
+        .post("/v1/hotels")
+        .set("Authorization", `Bearer ${ADMIN_TOKEN}`)
+        .send({ name: "Test" });
       expect(res.status).toBe(400);
     });
   });

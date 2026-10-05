@@ -1,9 +1,19 @@
 import prisma from "../lib/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
+import type { AuthClaims } from "../lib/auth.js";
 import { CreateRoomTypeInput, UpdateRoomTypeInput } from "../validators/room-type.js";
 
+function requireCatalogScope(actor: AuthClaims, hotelId: string): void {
+  if (actor.role === "SUPER_ADMIN") return;
+  if (actor.role !== "MANAGER" || actor.hotel_id !== hotelId) {
+    throw new AppError(403, "Manager of this hotel required", "Forbidden");
+  }
+}
+
 export class RoomTypeService {
-  async create(data: CreateRoomTypeInput) {
+  async create(data: CreateRoomTypeInput, actor: AuthClaims) {
+    requireCatalogScope(actor, data.hotel_id);
+
     const hotel = await prisma.hotel.findUnique({
       where: { hotel_id: data.hotel_id },
     });
@@ -43,8 +53,9 @@ export class RoomTypeService {
     return roomType;
   }
 
-  async update(id: string, data: UpdateRoomTypeInput) {
-    await this.findById(id);
+  async update(id: string, data: UpdateRoomTypeInput, actor: AuthClaims) {
+    const existing = await this.findById(id);
+    requireCatalogScope(actor, existing.hotel_id);
 
     return prisma.roomType.update({
       where: { room_type_id: id },

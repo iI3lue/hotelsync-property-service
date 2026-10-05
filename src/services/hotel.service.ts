@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
+import type { AuthClaims } from "../lib/auth.js";
 import { CreateHotelInput } from "../validators/hotel.js";
 
 export class HotelService {
@@ -28,7 +29,11 @@ export class HotelService {
     return hotel;
   }
 
-  async create(data: CreateHotelInput) {
+  /** Crear hoteles es global: solo SUPER_ADMIN. */
+  async create(data: CreateHotelInput, actor: AuthClaims) {
+    if (actor.role !== "SUPER_ADMIN") {
+      throw new AppError(403, "Only SUPER_ADMIN can create hotels", "Forbidden");
+    }
     return prisma.hotel.create({
       data: {
         name: data.name,

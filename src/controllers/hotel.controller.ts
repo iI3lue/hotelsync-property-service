@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { hotelService } from "../services/hotel.service.js";
+import { AuthRequest } from "../lib/auth.js";
 
 export class HotelController {
   async getAll(_req: Request, res: Response, next: NextFunction) {
@@ -23,7 +24,11 @@ export class HotelController {
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const hotel = await hotelService.create(req.body);
+      const auth = (req as AuthRequest).auth;
+      const hotel = await hotelService.create(
+        req.body,
+        auth ?? { sub: "", email: "", role: "", hotel_id: null, scope: "global", iss: "", aud: "", email_verified: false, iat: 0, exp: 0 }
+      );
       res.status(201).json(hotel);
     } catch (err) {
       next(err);

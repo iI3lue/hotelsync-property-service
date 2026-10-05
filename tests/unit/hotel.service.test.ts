@@ -62,15 +62,37 @@ describe("HotelService", () => {
   });
 
   describe("create", () => {
-    it("should create a hotel", async () => {
+    const superAdmin = {
+      sub: "admin",
+      email: "admin@hotelsync.local",
+      email_verified: true,
+      role: "SUPER_ADMIN",
+      hotel_id: null,
+      scope: "global" as const,
+      iss: "hotelsync",
+      aud: "hotelsync-api",
+      iat: 0,
+      exp: 9999999999,
+    };
+
+    it("should create a hotel as SUPER_ADMIN", async () => {
       const data = { name: "New Hotel", city: "BA", country: "AR", timezone: "America/Argentina/Buenos_Aires" };
       const created = { hotel_id: "new-id", ...data };
       mockPrisma.hotel.create.mockResolvedValue(created);
 
-      const result = await hotelService.create(data);
+      const result = await hotelService.create(data, superAdmin);
 
       expect(result).toEqual(created);
       expect(mockPrisma.hotel.create).toHaveBeenCalledWith({ data });
+    });
+
+    it("should reject hotel creation for non-admin roles", async () => {
+      const data = { name: "New Hotel", city: "BA", country: "AR", timezone: "America/Argentina/Buenos_Aires" };
+
+      await expect(
+        hotelService.create(data, { ...superAdmin, role: "MANAGER", hotel_id: "h1" })
+      ).rejects.toThrow(AppError);
+      expect(mockPrisma.hotel.create).not.toHaveBeenCalled();
     });
   });
 
