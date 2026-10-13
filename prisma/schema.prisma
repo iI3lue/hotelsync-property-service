@@ -15,6 +15,7 @@ model Hotel {
   city     String @db.VarChar(100)
   country  String @db.VarChar(100)
   timezone String @db.VarChar(50)
+  image_url String? @db.VarChar(500)
 
   roomTypes            RoomType[]
   cancellationPolicies CancellationPolicy[]

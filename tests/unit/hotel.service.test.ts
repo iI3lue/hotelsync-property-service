@@ -9,6 +9,7 @@ jest.mock("../../src/lib/prisma.js", () => ({
       findMany: jest.fn(),
       findUnique: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
     },
     roomType: {
       findMany: jest.fn(),
@@ -93,6 +94,65 @@ describe("HotelService", () => {
         hotelService.create(data, { ...superAdmin, role: "MANAGER", hotel_id: "h1" })
       ).rejects.toThrow(AppError);
       expect(mockPrisma.hotel.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("update", () => {
+    const superAdmin = {
+      sub: "admin",
+      email: "admin@hotelsync.local",
+      email_verified: true,
+      role: "SUPER_ADMIN",
+      hotel_id: null,
+      scope: "global" as const,
+      iss: "hotelsync",
+      aud: "hotelsync-api",
+      iat: 0,
+      exp: 9999999999,
+    };
+    const managerH1 = { ...superAdmin, role: "MANAGER", hotel_id: "h1" };
+
+    it("should update image_url as SUPER_ADMIN", async () => {
+      mockPrisma.hotel.findUnique.mockResolvedValue({ hotel_id: "h1", name: "H" });
+      mockPrisma.hotel.update.mockResolvedValue({ hotel_id: "h1", image_url: "https://x/img.jpg" });
+
+      const result = await hotelService.update(
+        "h1",
+        { image_url: "https://x/img.jpg" },
+        superAdmin
+      );
+
+      expect(result.image_url).toBe("https://x/img.jpg");
+      expect(mockPrisma.hotel.update).toHaveBeenCalledWith({
+        where: { hotel_id: "h1" },
+        data: { image_url: "https://x/img.jpg" },
+      });
+    });
+
+    it("should allow MANAGER on own hotel", async () => {
+      mockPrisma.hotel.findUnique.mockResolvedValue({ hotel_id: "h1", name: "H" });
+      mockPrisma.hotel.update.mockResolvedValue({ hotel_id: "h1", name: "H2" });
+
+      await hotelService.update("h1", { name: "H2" }, managerH1);
+
+      expect(mockPrisma.hotel.update).toHaveBeenCalled();
+    });
+
+    it("should reject MANAGER on another hotel with 403", async () => {
+      mockPrisma.hotel.findUnique.mockResolvedValue({ hotel_id: "h2", name: "Other" });
+
+      await expect(
+        hotelService.update("h2", { name: "X" }, managerH1)
+      ).rejects.toMatchObject({ statusCode: 403 });
+      expect(mockPrisma.hotel.update).not.toHaveBeenCalled();
+    });
+
+    it("should throw 404 when hotel not found", async () => {
+      mockPrisma.hotel.findUnique.mockResolvedValue(null);
+
+      await expect(
+        hotelService.update("missing", { name: "X" }, superAdmin)
+      ).rejects.toThrow(AppError);
     });
   });
 

@@ -1,7 +1,14 @@
 import prisma from "../lib/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
 import type { AuthClaims } from "../lib/auth.js";
-import { CreateHotelInput } from "../validators/hotel.js";
+import { CreateHotelInput, UpdateHotelInput } from "../validators/hotel.js";
+
+function requireHotelScope(actor: AuthClaims, hotelId: string): void {
+  if (actor.role === "SUPER_ADMIN") return;
+  if (actor.role !== "MANAGER" || actor.hotel_id !== hotelId) {
+    throw new AppError(403, "Manager of this hotel required", "Forbidden");
+  }
+}
 
 export class HotelService {
   async findAll() {
@@ -41,7 +48,19 @@ export class HotelService {
         city: data.city,
         country: data.country,
         timezone: data.timezone,
+        image_url: data.image_url,
       },
+    });
+  }
+
+  /** Editar hotel: SUPER_ADMIN en cualquiera, MANAGER solo en el suyo. */
+  async update(id: string, data: UpdateHotelInput, actor: AuthClaims) {
+    const existing = await this.findById(id);
+    requireHotelScope(actor, existing.hotel_id);
+
+    return prisma.hotel.update({
+      where: { hotel_id: id },
+      data,
     });
   }
 
