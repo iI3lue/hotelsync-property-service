@@ -16,6 +16,15 @@ const ANONYMOUS = {
 } as const;
 
 export class RoomTypeController {
+  async getById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const roomType = await roomTypeService.findById(req.params.id as string);
+      res.json(roomType);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const auth = (req as AuthRequest).auth;

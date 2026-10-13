@@ -6,6 +6,7 @@ import { createRoomTypeSchema, roomTypeIdParamSchema } from "../validators/room-
 
 const router = Router();
 
+router.get("/:id", validate(roomTypeIdParamSchema, "params"), roomTypeController.getById.bind(roomTypeController));
 router.post("/", requireAuth, validate(createRoomTypeSchema), roomTypeController.create.bind(roomTypeController));
 router.put("/:id", requireAuth, validate(roomTypeIdParamSchema, "params"), roomTypeController.update.bind(roomTypeController));
 
