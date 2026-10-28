@@ -24,7 +24,7 @@ jest.mock("../../src/lib/prisma.js", () => ({
 }));
 
 import prisma from "../../src/lib/prisma.js";
-import { signAccessToken } from "../../../user-service/src/lib/tokens.js";
+import { signAccessToken } from "../helpers/tokens.js";
 const mockPrisma = prisma as any;
 
 const ADMIN_TOKEN = signAccessToken({

@@ -3,7 +3,7 @@ import {
   verifyAccessToken,
 } from "../../src/lib/auth.js";
 import { AppError } from "../../src/middleware/error-handler.js";
-import { signAccessToken } from "../../../user-service/src/lib/tokens.js";
+import { signAccessToken } from "../helpers/tokens.js";
 
 const HOTEL_ID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
 
