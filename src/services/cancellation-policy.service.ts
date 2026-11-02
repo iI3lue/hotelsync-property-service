@@ -1,9 +1,20 @@
 import prisma from "../lib/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
+import type { AuthClaims } from "../lib/auth.js";
 import { CreateCancellationPolicyInput } from "../validators/cancellation-policy.js";
 
+/** SUPER_ADMIN en cualquier hotel; MANAGER solo en el suyo. */
+function requirePolicyScope(actor: AuthClaims, hotelId: string): void {
+  if (actor.role === "SUPER_ADMIN") return;
+  if (actor.role !== "MANAGER" || actor.hotel_id !== hotelId) {
+    throw new AppError(403, "Manager of this hotel required", "Forbidden");
+  }
+}
+
 export class CancellationPolicyService {
-  async create(data: CreateCancellationPolicyInput) {
+  async create(actor: AuthClaims, data: CreateCancellationPolicyInput) {
+    requirePolicyScope(actor, data.hotel_id);
+
     const hotel = await prisma.hotel.findUnique({
       where: { hotel_id: data.hotel_id },
     });
