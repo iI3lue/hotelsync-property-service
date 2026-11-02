@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { cancellationPolicyController } from "../controllers/cancellation-policy.controller.js";
+import { requireAuth } from "../lib/auth.js";
 import { validate } from "../middleware/validate.js";
 import { hotelIdParamSchema } from "../validators/hotel.js";
 import { createCancellationPolicySchema } from "../validators/cancellation-policy.js";
@@ -14,6 +15,7 @@ router.get(
 
 router.post(
   "/",
+  requireAuth,
   validate(createCancellationPolicySchema),
   cancellationPolicyController.create.bind(cancellationPolicyController)
 );
